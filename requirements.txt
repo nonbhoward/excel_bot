@@ -1,0 +1,4 @@
+# directory_utils # https://github.com/dbrannonhoward/directory_utils
+# minimalog # https://github.com/dbrannonhoward/minimalog
+openpyxl
+pathlib2

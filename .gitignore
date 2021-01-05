@@ -1,0 +1,14 @@
+# extensions to ignore
+*.log
+*.pyc
+*.x*
+
+# files to ignore
+# .gitignore
+CONSTANTS.py
+directory*
+minimalog
+
+# folders to ignore
+.idea/
+venv*/
