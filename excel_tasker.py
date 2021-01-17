@@ -2,7 +2,7 @@ from directory_utils.directory_utils import *
 from minimalog.minimal_log import MinimalLog
 from openpyxl import load_workbook, Workbook, worksheet
 from pickle import dumps, load
-from string import ascii_letters, digits
+from string import ascii_letters, ascii_uppercase, digits
 from time import sleep
 ml = MinimalLog()
 SUCCESSFUL = True
@@ -34,9 +34,6 @@ class ExcelTasker:
             ml.log_event('read mode init', event_completed=False)
             self.open_workbooks = self.open_excel_files_in_data_dir()
             ml.log_event('read mode init', event_completed=True)
-        wb_key_substring = 'Copy of Daily Axle-DL 20-21'
-        self.active_workbook = self._get_active_workbook(wb_key_substring)
-        self.active_worksheet = self._get_active_worksheet('RDU')
         ml.log_event(event='init ExcelTasker', event_completed=True)
         if debug:
             ml.log_event('debug routine', event_completed=False)
@@ -98,7 +95,6 @@ class ExcelTasker:
         """
         TODO : note that each file takes > 1s to create, asyncio opportunity here?
         :param path: path where we will save the instantiated file
-        :param filename: filename that will be used to refer to the file
         :return: boolean, success or failure
         """
         try:
@@ -120,13 +116,13 @@ class ExcelTasker:
         """
         :return: all worksheets from all open workbooks
         """
-        all_worksheet_names = list()
+        all_worksheets = list()
         try:
             for workbook_name, workbook in self.open_workbooks.items():
                 worksheets_from_this_workbook = self.get_all_worksheets_from_workbook(workbook_name)
                 for a_worksheet in worksheets_from_this_workbook:
-                    all_worksheet_names.append(a_worksheet)
-            return all_worksheet_names
+                    all_worksheets.append(a_worksheet)
+            return all_worksheets
         except KeyError as k_err:
             ml.log_exception(k_err)
 
@@ -213,6 +209,29 @@ class ExcelTasker:
         # cell_value_pairs = dict()
         pass
 
+    def _generate_cells(self, top_left_cell: str, bottom_right_cell: str) -> list:
+        pass
+
+    def _generate_columns(self, min_col: str, max_col: str) -> list:
+        ml.log_event('generating columns from {} and {}'.format(min_col, max_col))
+        """
+        range(65, 91) is every upper case letter A to Z via ord()
+        :param element:
+        :param max_col:
+        :return:
+        """
+        generated_cols = list()
+        min_col, max_col, record = self._sanitize_col(min_col), self._sanitize_col(max_col), False
+        for letter in ascii_uppercase:
+            
+        return generated_cols
+
+    @staticmethod
+    def _generate_rows(min_row: int, max_row: int) -> list:
+        generated_rows = list()
+        for row in range(min_row, max_row + 1):
+            generated_rows.append(row)
+
     def _get_active_workbook(self, wb_key_substring='') -> Workbook:
         """
         :param wb_key_substring: the full path to the file, including extension, is the workbook key
@@ -282,14 +301,20 @@ class ExcelTasker:
         cell = self._sanitize_col(col) + self._sanitize_row(row)
 
     def __debug(self):
-        all_worksheets = self.get_all_worksheets_from_all_open_workbooks()
+        self._generate_columns('a', 'ab')
+        self._generate_columns('z', 'aa')
+        self._generate_columns('ca', 'cd')
+        self._generate_columns('n', 'an')
+        self._generate_columns('nn', 'a')
+        self._generate_columns('12', 'bb')
+        self._generate_columns('!', 'B')
         pass
 
 
 if __name__ == '__main__':
     from data_src.CONSTANTS import EXCEL_EXTS
     ml.log_event('execute ExcelTask', event_completed=False, announce=True)
-    et_read = ExcelTasker(debug=True, read=True, write=False)
+    et_read = ExcelTasker(debug=True)
     ml.log_event('close ExcelTask', event_completed=True, announce=True)
     pass
 else:
