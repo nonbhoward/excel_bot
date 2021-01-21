@@ -5,7 +5,7 @@
 
 # files to ignore
 # .gitignore
-CONSTANTS.py
+# CONSTANTS.py
 directory*
 minimalog
 
