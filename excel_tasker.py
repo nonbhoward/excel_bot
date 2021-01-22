@@ -92,7 +92,9 @@ class ExcelTasker:
             raise OSError('There are no open workbooks')
         for key in self.open_workbooks.keys():
             for worksheet in self.open_workbooks[key]['workbook'].worksheets:
-                self.open_workbooks[key][worksheet] = dict()
+                self.open_workbooks[key][worksheet.title] = dict()
+                pass
+                # TODO use worksheet dict to extract & store data
 
     @staticmethod
     def get_filenames_to_create() -> list:
