@@ -209,28 +209,84 @@ class ExcelTasker:
         # cell_value_pairs = dict()
         pass
 
-    def _generate_cells(self, top_left_cell: str, bottom_right_cell: str) -> list:
-        pass
+    def _extract_column_data(self, cell_a: str, cell_b: str) -> tuple:
+        cell_a_column_data, cell_b_column_data = list(), list()
+        cell_a, cell_b = self._sanitize_col(cell_a), self._sanitize_col(cell_b)
+        for character in cell_a:
+            if character in ascii_uppercase:
+                cell_a_column_data.append(character)
+        for character in cell_b:
+            if character in ascii_uppercase:
+                cell_b_column_data.append(character)
+        return ''.join(cell_a_column_data), ''.join(cell_b_column_data)
+
+    def _extract_row_data(self, cell_a: str, cell_b: str) -> tuple:
+        cell_a_row_data, cell_b_row_data = list(), list()
+        cell_a, cell_b = self._sanitize_row(cell_a), self._sanitize_row(cell_b)
+        for character in cell_a:
+            if character in digits:
+                cell_a_row_data.append(character)
+        for character in cell_b:
+            if character in digits:
+                cell_b_row_data.append(character)
+        return ''.join(cell_a_row_data), ''.join(cell_b_row_data)
+
+    def _generate_cells(self, top_left_cell: str, bottom_right_cell: str) -> dict:
+        cell_dict = dict()
+        cells = self._extract_column_data(top_left_cell, bottom_right_cell)
+        rows = self._extract_row_data(top_left_cell, bottom_right_cell)
+        columns = self._generate_columns(min_col=cells[0], max_col=cells[1])
+        rows = self._generate_rows(min_row=rows[0], max_row=rows[1])
+        for column in columns:
+            for row in rows:
+                cell_dict[column+row] = ''
+        return cell_dict
 
     def _generate_columns(self, min_col: str, max_col: str) -> list:
-        ml.log_event('generating columns from {} and {}'.format(min_col, max_col))
         """
-        range(65, 91) is every upper case letter A to Z via ord()
-        :param element:
+        :param min_col:
         :param max_col:
         :return:
         """
-        generated_cols = list()
-        min_col, max_col, record = self._sanitize_col(min_col), self._sanitize_col(max_col), False
-        for letter in ascii_uppercase:
-            
-        return generated_cols
+        ml.log_event('generating columns from {} and {}'.format(min_col, max_col))
+        generated_cols, min_col, max_col, record = list(), self._sanitize_col(min_col), \
+                                                   self._sanitize_col(max_col), False
+        column_range, columns, record = list(), self._generate_column_sample(), False
+        for column in columns:
+            if min_col == column:
+                record = True
+            if record:
+                column_range.append(column)
+            if max_col == column:
+                record = False
+                break
+        return column_range
+
+    @staticmethod
+    def _generate_column_sample() -> list:
+        """
+        TODO work in progress, there is an opportunity to exploit recursion here
+        :return: a lot of rows
+        """
+        columns, ord_offset, chr_mod = list(), 65, 26
+        for column_lead in range(99):
+            if len(columns) < pow(26, 1):
+                columns.append(chr(column_lead % chr_mod + ord_offset))
+            elif len(columns) < pow(26, 2) + 26:
+                for letter_upper in ascii_uppercase:
+                    columns.append(chr(column_lead % chr_mod + ord_offset) + letter_upper)
+            elif len(columns) < pow(26, 3) + 26:
+                for letter_upper_one in ascii_uppercase:
+                    for letter_upper_two in ascii_uppercase:
+                        columns.append(chr(column_lead % chr_mod + ord_offset) + letter_upper_one + letter_upper_two)
+        return columns
 
     @staticmethod
     def _generate_rows(min_row: int, max_row: int) -> list:
         generated_rows = list()
-        for row in range(min_row, max_row + 1):
-            generated_rows.append(row)
+        for row in range(int(min_row), int(max_row) + 1):
+            generated_rows.append(str(row))
+        return generated_rows
 
     def _get_active_workbook(self, wb_key_substring='') -> Workbook:
         """
@@ -301,14 +357,7 @@ class ExcelTasker:
         cell = self._sanitize_col(col) + self._sanitize_row(row)
 
     def __debug(self):
-        self._generate_columns('a', 'ab')
-        self._generate_columns('z', 'aa')
-        self._generate_columns('ca', 'cd')
-        self._generate_columns('n', 'an')
-        self._generate_columns('nn', 'a')
-        self._generate_columns('12', 'bb')
-        self._generate_columns('!', 'B')
-        pass
+        cell_dict = self._generate_cells(top_left_cell='m1', bottom_right_cell='z2')
 
 
 if __name__ == '__main__':
