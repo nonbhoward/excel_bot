@@ -33,6 +33,7 @@ class ExcelTasker:
         if read:
             ml.log_event('read mode init', event_completed=False)
             self.open_workbooks = self.open_excel_files_in_data_dir()
+            self.extract_data_range_from_open_worksheets('a1', 'p700')
             ml.log_event('read mode init', event_completed=True)
         ml.log_event(event='init ExcelTasker', event_completed=True)
         if debug:
@@ -85,6 +86,13 @@ class ExcelTasker:
 
     def create_worksheet_name_in_workbook(self, ws_name: str, workbook: Workbook) -> bool:
         pass
+
+    def extract_data_range_from_open_worksheets(self, top_left: str, bottom_right: str):
+        if self.open_workbooks is None:
+            raise OSError('There are no open workbooks')
+        for key in self.open_workbooks.keys():
+            for worksheet in self.open_workbooks[key]['workbook'].worksheets:
+                self.open_workbooks[key][worksheet] = dict()
 
     @staticmethod
     def get_filenames_to_create() -> list:
@@ -182,15 +190,9 @@ class ExcelTasker:
         :return: a dictionary containing all data keyed by cell
         """
         worksheet_contents = dict()
-        for col in range(columns):
-            for row in range(rows):
-                cell = str(col) + str(row)
-                worksheet_contents[cell] = self.read_value_from_worksheet(self.active_workbook,
-                                                                          )
+        pass
 
-    def read_value_from_worksheet(self, workbook: Workbook,
-                                  worksheet: worksheet,
-                                  col: str, row: str) -> str:
+    def read_value_from_worksheet(self, workbook: Workbook, worksheet: worksheet, col: str, row: str) -> str:
         """
         :param workbook: the workbook to operate in
         :param worksheet: the worksheet to operate in
@@ -206,7 +208,6 @@ class ExcelTasker:
             ml.log_exception(o_err)
 
     def search_active_worksheet_for_cell_value(self) -> dict():
-        # cell_value_pairs = dict()
         pass
 
     def _extract_column_data(self, cell_a: str, cell_b: str) -> tuple:
@@ -251,7 +252,7 @@ class ExcelTasker:
         ml.log_event('generating columns from {} and {}'.format(min_col, max_col))
         generated_cols, min_col, max_col, record = list(), self._sanitize_col(min_col), \
                                                    self._sanitize_col(max_col), False
-        column_range, columns, record = list(), self._generate_column_sample(), False
+        column_range, columns, record = list(), self._generate_column_sample_oversized(), False
         for column in columns:
             if min_col == column:
                 record = True
@@ -263,9 +264,9 @@ class ExcelTasker:
         return column_range
 
     @staticmethod
-    def _generate_column_sample() -> list:
+    def _generate_column_sample_oversized() -> list:
         """
-        TODO work in progress, there is an opportunity to exploit recursion here
+        TODO work in progress, lazy
         :return: a lot of rows
         """
         columns, ord_offset, chr_mod = list(), 65, 26
@@ -357,13 +358,13 @@ class ExcelTasker:
         cell = self._sanitize_col(col) + self._sanitize_row(row)
 
     def __debug(self):
-        cell_dict = self._generate_cells(top_left_cell='m1', bottom_right_cell='z2')
+        pass
 
 
 if __name__ == '__main__':
     from data_src.CONSTANTS import EXCEL_EXTS
     ml.log_event('execute ExcelTask', event_completed=False, announce=True)
-    et_read = ExcelTasker(debug=True)
+    et_read = ExcelTasker(debug=True, read=True)
     ml.log_event('close ExcelTask', event_completed=True, announce=True)
     pass
 else:
