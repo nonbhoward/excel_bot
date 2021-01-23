@@ -9,16 +9,16 @@ SUCCESSFUL = True
 
 
 class ExcelTasker:
-    def __init__(self, read=False, write=False, debug=False, fetch_downloads=False, single_file=False):
+    def __init__(self, read=False, write=False, debug=False, fetch_downloads=False):
         """
-        :param read: bool, the attribute 'files_to_read' will be populated
-        :param write: bool, the attribute 'files_to_write' will be populated
-        :param fetch_downloads: bool, an attempt to copy files from downloads will occur
-        :param debug: bool, debug function will run
+        :param read: bool, populate data for read operations
+        :param write: bool, create workbook objects for write operations
+        :param fetch_downloads: bool, try to copy newly discovered files from downloads to data path
+        :param debug: bool, debug function will run after initialization
         """
         ml.log_event(event='init ExcelTasker with read = {} and write = {}'.format(read, write),
                      event_completed=False)
-        self.open_workbooks, self.workbooks_to_create, self.active_workbook = dict(), dict(), None
+        self.open_workbooks, self.workbooks_to_create = dict(), dict()
         self.path, self.data_dir, self.downloads_dir = get_path_at_cwd(), get_data_path(), get_os_downloads_path()
         if write:
             ml.log_event(event='write mode init', event_completed=False)
@@ -33,7 +33,7 @@ class ExcelTasker:
         if read:
             ml.log_event('read mode init', event_completed=False)
             self.open_workbooks = self.open_excel_files_in_data_dir()
-            self.extract_data_range_from_open_worksheets('a1', 'z100')
+            self.extract_data_range_from_open_worksheets()
             ml.log_event('read mode init', event_completed=True)
         ml.log_event(event='init ExcelTasker', event_completed=True)
         if debug:
@@ -89,7 +89,7 @@ class ExcelTasker:
     def create_worksheet_name_in_workbook(self, ws_name: str, workbook: Workbook) -> bool:
         pass
 
-    def extract_data_range_from_open_worksheets(self, top_left: str, bottom_right: str):
+    def extract_data_range_from_open_worksheets(self, top_left='a1', bottom_right='z999'):
         """
         abstract : for a_worksheet in worksheets -> init dict -> build data -> save data -> continue
         :param top_left:
