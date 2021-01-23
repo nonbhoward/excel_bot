@@ -18,12 +18,12 @@ class ExcelTasker:
         """
         ml.log_event(event='init ExcelTasker with read = {} and write = {}'.format(read, write),
                      event_completed=False)
-        self.open_workbooks, self.workbooks_to_create = dict(), dict()
+        self.open_workbooks, self.workbooks_to_create, self.active_workbook = dict(), dict(), None
         self.path, self.data_dir, self.downloads_dir = get_path_at_cwd(), get_data_path(), get_os_downloads_path()
         if write:
             ml.log_event(event='write mode init', event_completed=False)
             self.workbook_status, self.created_workbooks = dict(), dict()
-            self.workbooks_to_create = self.append_xlsx_extension_to_filenames()
+            self.workbooks_to_create = self.append_xlsx_extension_to_filenames(self.get_filenames())
             self.create_workbooks_in_queue()
             ml.log_event(event='write mode init', event_completed=True)
         self.files_in_data_path = get_all_files_in(self.data_dir)
@@ -33,7 +33,7 @@ class ExcelTasker:
         if read:
             ml.log_event('read mode init', event_completed=False)
             self.open_workbooks = self.open_excel_files_in_data_dir()
-            self.extract_data_range_from_open_worksheets('a1', 'p700')
+            self.extract_data_range_from_open_worksheets('a1', 'z100')
             ml.log_event('read mode init', event_completed=True)
         ml.log_event(event='init ExcelTasker', event_completed=True)
         if debug:
@@ -41,15 +41,17 @@ class ExcelTasker:
             self.__debug()
             ml.log_event('debug routine', event_completed=True)
 
-    def append_xlsx_extension_to_filenames(self) -> dict:
+    @staticmethod
+    def append_xlsx_extension_to_filenames(filenames_to_build: list) -> dict:
         """
         splits filename string on '.' delimiter, ideally finds zero or two, appends '.xlsx' to first
+        :param filenames_to_build: list_of_filenames
         :return: filename.xlsx
         """
         xlsx_ext = '.xlsx'
         filenames_with_ext = dict()
         try:
-            for filename in self.get_filenames_to_create():
+            for filename in filenames_to_build:
                 if '.' not in filename:
                     filenames_with_ext[filename] = filename + xlsx_ext
                 else:
@@ -88,16 +90,23 @@ class ExcelTasker:
         pass
 
     def extract_data_range_from_open_worksheets(self, top_left: str, bottom_right: str):
+        """
+        abstract : for a_worksheet in worksheets -> init dict -> build data -> save data -> continue
+        :param top_left:
+        :param bottom_right:
+        :return:
+        """
         if self.open_workbooks is None:
             raise OSError('There are no open workbooks')
         for key in self.open_workbooks.keys():
-            for worksheet in self.open_workbooks[key]['workbook'].worksheets:
-                self.open_workbooks[key][worksheet.title] = dict()
-                pass
-                # TODO use worksheet dict to extract & store data
+            for a_worksheet in self.open_workbooks[key]['workbook'].worksheets:
+                worksheet_title = a_worksheet.title
+                cell_data = self._build_and_store_cell_data(active_workbook=self.open_workbooks[key]['workbook'],
+                                                            top_left=top_left, bottom_right=bottom_right)
+                self.open_workbooks[key][worksheet_title] = cell_data
 
     @staticmethod
-    def get_filenames_to_create() -> list:
+    def get_filenames() -> list:
         # TODO debug function, will be replaced with something more substantial after testing
         return ['z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7', 'z8', 'z9']
 
@@ -185,15 +194,6 @@ class ExcelTasker:
         except OSError as o_err:
             ml.log_exception(o_err)
 
-    def read_active_worksheet_into_dict(self, columns: int, rows: int) -> bool:
-        """
-        :param columns: the number of columns to include, starting at A to A + columns
-        :param rows: the number of rows to include, starting at 1 to 1 + rows
-        :return: a dictionary containing all data keyed by cell
-        """
-        worksheet_contents = dict()
-        pass
-
     def read_value_from_worksheet(self, workbook: Workbook, worksheet: worksheet, col: str, row: str) -> str:
         """
         :param workbook: the workbook to operate in
@@ -211,6 +211,29 @@ class ExcelTasker:
 
     def search_active_worksheet_for_cell_value(self) -> dict():
         pass
+
+    def set_active_worksheet(self, active_workbook: Workbook, worksheet_title: str) -> bool:
+        if worksheet_title not in active_workbook['workbook'].sheetnames:
+            raise OSError('worksheet title not found in workbook {}'.format(active_workbook))
+        try:
+            self.active_worksheet = active_workbook[worksheet_title]
+        except OSError as o_err:
+            ml.log_exception(o_err)
+
+    def _build_and_store_cell_data(self, active_workbook: Workbook, top_left: str, bottom_right: str) -> dict:
+        """
+        :param active_workbook: workbook containing data
+        :param top_left: top left cell for data range
+        :param bottom_right: bottom right cell for data range
+        :return: bool, success
+        """
+        try:
+            cell_dict = self._generate_cells(top_left_cell=top_left, bottom_right_cell=bottom_right)
+            for cell_address in cell_dict.keys():
+                cell_dict[cell_address] = active_workbook.active[cell_address].value
+            return self._purge_none_from_dict(cell_dict)
+        except KeyError as k_err:
+            ml.log_exception(k_err)
 
     def _extract_column_data(self, cell_a: str, cell_b: str) -> tuple:
         cell_a_column_data, cell_b_column_data = list(), list()
@@ -317,6 +340,22 @@ class ExcelTasker:
                 # find a workbook_key that contains wb_key_substring and return the associated workbook
                 if ws_key_substring in _worksheet.title:
                     return _worksheet
+        except KeyError as k_err:
+            ml.log_exception(k_err)
+
+    def _purge_none_from_dict(self, none_dict: dict) -> dict:
+        """
+        :param none_dict: dict potentially containing None values
+        :return: dict containing zero None values
+        """
+        keys_with_none_values = list()
+        try:
+            for key in none_dict:
+                if none_dict[key] is None:
+                    keys_with_none_values.append(key)
+            for key in keys_with_none_values:
+                none_dict.pop(key)
+            return none_dict
         except KeyError as k_err:
             ml.log_exception(k_err)
 
