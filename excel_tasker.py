@@ -1,9 +1,7 @@
 from directory_utils.directory_utils import *
 from minimalog.minimal_log import MinimalLog
 from openpyxl import load_workbook, Workbook, worksheet
-from pickle import dumps, load
 from string import ascii_letters, ascii_uppercase, digits
-from time import sleep
 ml = MinimalLog()
 SUCCESSFUL = True
 
@@ -16,14 +14,13 @@ class ExcelTasker:
         :param fetch_downloads: bool, try to copy newly discovered files from downloads to data path
         :param debug: bool, debug function will run after initialization
         """
-        ml.log_event(event='init ExcelTasker with read = {} and write = {}'.format(read, write),
-                     event_completed=False)
+        ml.log_event(event='init ExcelTasker with read = {} and write = {}'.format(read, write), event_completed=False)
         self.open_workbooks, self.workbooks_to_create = dict(), dict()
         self.path, self.data_dir, self.downloads_dir = get_path_at_cwd(), get_data_path(), get_os_downloads_path()
         if write:
             ml.log_event(event='write mode init', event_completed=False)
             self.workbook_status, self.created_workbooks = dict(), dict()
-            self.workbooks_to_create = self.append_xlsx_extension_to_filenames(self.get_filenames())
+            self.workbooks_to_create = self.append_xlsx_extension_to_filenames(self._get_arbitrary_filenames())
             self.create_workbooks_in_queue()
             ml.log_event(event='write mode init', event_completed=True)
         self.files_in_data_path = get_all_files_in(self.data_dir)
@@ -48,17 +45,22 @@ class ExcelTasker:
         :param filenames_to_build: list_of_filenames
         :return: filename.xlsx
         """
+        event = 'appending extensions to filenames {}'
+        ml.log_event(event.format(filenames_to_build), event_completed=False)
         xlsx_ext = '.xlsx'
         filenames_with_ext = dict()
         try:
             for filename in filenames_to_build:
                 if '.' not in filename:
+                    ml.log_event('adding extension to filename: {}'.format(filename))
                     filenames_with_ext[filename] = filename + xlsx_ext
                 else:
                     string_parts = filename.split('.')
                     if len(string_parts) > 2:
                         ml.log_event('potential error with filename {}'.format(filename), level=ml.WARN)
+                    ml.log_event('adding extension to filename: {}'.format(filename))
                     filenames_with_ext[filename] = string_parts[0] + xlsx_ext
+            ml.log_event(event.format(filenames_to_build), event_completed=True)
             return filenames_with_ext
         except OSError as o_err:
             ml.log_exception(o_err)
@@ -68,6 +70,7 @@ class ExcelTasker:
         :return: create the workbook objects queued from self
         """
         try:
+            ml.log_event('creating workbooks from queue', event_completed=False)
             for k, file_val in self.workbooks_to_create.items():
                 full_file_path = build_full_path_to_filename(self.data_dir, file_val)
                 self.workbook_status[full_file_path] = dict()
@@ -83,32 +86,32 @@ class ExcelTasker:
                 else:
                     self.workbook_status[full_file_path]['newly_created'] = False
                     self.workbook_status[full_file_path]['exists'] = False
+            ml.log_event('creating workbooks from queue', event_completed=True)
         except KeyError as k_err:
             ml.log_exception(k_err)
 
     def create_worksheet_name_in_workbook(self, ws_name: str, workbook: Workbook) -> bool:
         pass
 
-    def extract_data_range_from_open_worksheets(self, top_left='a1', bottom_right='z999'):
+    def extract_data_range_from_open_worksheets(self, data_range_top_left='a1', data_range_bottom_right='z999'):
         """
         abstract : for a_worksheet in worksheets -> init dict -> build data -> save data -> continue
-        :param top_left:
-        :param bottom_right:
+        :param data_range_top_left:
+        :param data_range_bottom_right:
         :return:
         """
         if self.open_workbooks is None:
+            ml.log_event('No open workbooks, raising error')
             raise OSError('There are no open workbooks')
         for key in self.open_workbooks.keys():
+            ml.log_event('processing workbook {}'.format(key))
             for a_worksheet in self.open_workbooks[key]['workbook'].worksheets:
                 worksheet_title = a_worksheet.title
                 cell_data = self._build_and_store_cell_data(active_workbook=self.open_workbooks[key]['workbook'],
-                                                            top_left=top_left, bottom_right=bottom_right)
+                                                            data_range_top_left=data_range_top_left,
+                                                            data_range_bottom_right=data_range_bottom_right)
+                ml.log_event('saving data from worksheet {}'.format(worksheet_title))
                 self.open_workbooks[key][worksheet_title] = cell_data
-
-    @staticmethod
-    def get_filenames() -> list:
-        # TODO debug function, will be replaced with something more substantial after testing
-        return ['z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7', 'z8', 'z9']
 
     def instantiate_and_create_workbook_at(self, path: Path) -> bool:
         """
@@ -117,6 +120,7 @@ class ExcelTasker:
         :return: boolean, success or failure
         """
         try:
+            ml.log_event('creating workbook at path {}'.format(path), event_completed=False)
             new_wb = Workbook()
             new_wb.save(path)
             full_path = str(path.resolve())
@@ -125,11 +129,9 @@ class ExcelTasker:
         except OSError as o_err:
             ml.log_exception(o_err)
         if exists(path):
+            ml.log_event('creating workbook at path {}'.format(path), event_completed=True)
             return True
         return False
-
-    def get_active_worksheet_in_active_workbook(self, worksheet_key: str) -> worksheet:
-        pass
 
     def get_all_worksheets_from_all_open_workbooks(self) -> list:
         """
@@ -137,10 +139,12 @@ class ExcelTasker:
         """
         all_worksheets = list()
         try:
+            ml.log_event('fetching all worksheets from open workbooks', event_completed=False)
             for workbook_name, workbook in self.open_workbooks.items():
                 worksheets_from_this_workbook = self.get_all_worksheets_from_workbook(workbook_name)
                 for a_worksheet in worksheets_from_this_workbook:
                     all_worksheets.append(a_worksheet)
+            ml.log_event('fetching all worksheets from open workbooks', event_completed=True)
             return all_worksheets
         except KeyError as k_err:
             ml.log_exception(k_err)
@@ -152,8 +156,10 @@ class ExcelTasker:
         """
         worksheet_names = list()
         try:
+            ml.log_event('fetching all worksheets from workbook {}'.format(workbook_name), event_completed=False)
             for _worksheet in self.open_workbooks[workbook_name]['workbook'].worksheets:
                 worksheet_names.append(_worksheet)
+            ml.log_event('fetching all worksheets from workbook {}'.format(workbook_name), event_completed=True)
             return worksheet_names
         except OSError as o_err:
             ml.log_exception(o_err)
@@ -220,15 +226,16 @@ class ExcelTasker:
         except OSError as o_err:
             ml.log_exception(o_err)
 
-    def _build_and_store_cell_data(self, active_workbook: Workbook, top_left: str, bottom_right: str) -> dict:
+    def _build_and_store_cell_data(self, active_workbook: Workbook,
+                                   data_range_top_left: str, data_range_bottom_right: str) -> dict:
         """
         :param active_workbook: workbook containing data
-        :param top_left: top left cell for data range
-        :param bottom_right: bottom right cell for data range
+        :param data_range_top_left: top left cell for data range
+        :param data_range_bottom_right: bottom right cell for data range
         :return: bool, success
         """
         try:
-            cell_dict = self._generate_cells(top_left_cell=top_left, bottom_right_cell=bottom_right)
+            cell_dict = self._generate_cells(top_left_cell=data_range_top_left, bottom_right_cell=data_range_bottom_right)
             for cell_address in cell_dict.keys():
                 cell_dict[cell_address] = active_workbook.active[cell_address].value
             return self._purge_none_from_dict(cell_dict)
@@ -342,6 +349,11 @@ class ExcelTasker:
                     return _worksheet
         except KeyError as k_err:
             ml.log_exception(k_err)
+
+    @staticmethod
+    def _get_arbitrary_filenames() -> list:
+        # TODO debug function, will be replaced with something more substantial after testing
+        return ['z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7', 'z8', 'z9']
 
     def _purge_none_from_dict(self, none_dict: dict) -> dict:
         """
