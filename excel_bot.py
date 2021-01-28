@@ -211,7 +211,7 @@ class ExcelBot:
                 self.worksheets[excel_file][worksheet_title] = misc_worksheet
             worksheet_count = len(self.worksheets[excel_file])
             if worksheet_count > 0:
-                ml.log_event('save worksheets from {} to class'.format(excel_file), event_completed=False)
+                ml.log_event('save worksheets from {} to class'.format(excel_file), event_completed=True)
                 return True
             ml.log_event('failure to save worksheets from {} to class'.format(excel_file))
             return False
