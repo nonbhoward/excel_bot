@@ -19,7 +19,7 @@ def mainloop():
     xb = ExcelBot(workbook_keywords_of_interest, worksheet_keywords_of_interest)
     while True:
         xb.set_search_area(MIN_COLUMN, MAX_COLUMN, MIN_ROW, MAX_ROW)
-        xb._search_worksheets_of_interest_and_record_cells_containing_(search_terms_to_find)
+        xb.search_worksheets_of_interest_and_record_cells_containing_(search_terms_to_find)
         output_file_path = get_output_file_path()
         xb.perform_write_operations(output_file_path)
         exit()

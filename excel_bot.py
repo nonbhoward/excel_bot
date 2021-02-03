@@ -62,7 +62,7 @@ class ExcelBot:
         except OSError as o_err:
             ml.log_event(o_err)
 
-    def _search_worksheets_of_interest_and_record_cells_containing_(self, search_terms: list):
+    def search_worksheets_of_interest_and_record_cells_containing_(self, search_terms: list):
         """
         _search_worksheets_of_interest_and_record_cells_containing_ does the following..
         1. loops over worksheet data, extracting worksheet title, and worksheet data
