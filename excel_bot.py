@@ -38,30 +38,6 @@ class ExcelBot:
         self._extract_worksheet_data_of_interest()
         ml.log_event('initializing \'{}\''.format(self.__class__.__name__), event_completed=True, announce=True)
 
-    @staticmethod
-    def perform_write_operations(output_filename):
-        """
-        perform_write_operations does the following..
-        1. check if the output file exists
-        2. if it exists, do nothing
-        3. if it does not exist..
-        4. initialize a new workbook
-        5. save the new workbook using the output_filename
-        :param output_filename: output filename to write
-        :return: None
-        """
-        ml.log_event('performing write operations on file \'{}\''.format(output_filename), event_completed=False)
-        try:
-            if not exists(output_filename):
-                new_workbook = Workbook()
-                new_workbook.save(output_filename)
-                ml.log_event('performing write operations on file \'{}\''.format(output_filename), event_completed=True)
-                return
-            ml.log_event('warning, file already exists')
-            ml.log_event('performing write operations on file \'{}\''.format(output_filename), event_completed=True)
-        except OSError as o_err:
-            ml.log_event(o_err)
-
     def search_worksheets_of_interest_and_record_cells_containing_(self, search_terms: list):
         """
         _search_worksheets_of_interest_and_record_cells_containing_ does the following..
@@ -123,6 +99,30 @@ class ExcelBot:
         self.max_col = max_col
         self.min_row = min_row
         self.max_row = max_row
+
+    @staticmethod
+    def write_file_to_disk(output_filename):
+        """
+        perform_write_operations does the following..
+        1. check if the output file exists
+        2. if it exists, do nothing
+        3. if it does not exist..
+        4. initialize a new workbook
+        5. save the new workbook using the output_filename
+        :param output_filename: output filename to write
+        :return: None
+        """
+        ml.log_event('performing write operations on file \'{}\''.format(output_filename), event_completed=False)
+        try:
+            if not exists(output_filename):
+                new_workbook = Workbook()
+                new_workbook.save(output_filename)
+                ml.log_event('performing write operations on file \'{}\''.format(output_filename), event_completed=True)
+                return
+            ml.log_event('warning, file already exists')
+            ml.log_event('performing write operations on file \'{}\''.format(output_filename), event_completed=True)
+        except OSError as o_err:
+            ml.log_event(o_err)
 
     def _extract_data_from_worksheet(self, workbook_path, a_worksheet):
         """
