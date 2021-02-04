@@ -7,7 +7,6 @@ MIN_COLUMN, MAX_COLUMN = 1, 100
 MIN_ROW, MAX_ROW = 1, 100
 workbook_keywords_of_interest = ['example']
 worksheet_keywords_of_interest = ['words', 'vehicles']
-columns_to_search = [1, 5, 27]
 search_terms_to_find = ['bacon', 'cheese', 'superbutt']
 
 
