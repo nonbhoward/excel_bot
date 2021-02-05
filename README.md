@@ -8,7 +8,7 @@ all it does right now is..
 1. parse files, workbooks, and worksheets into dicts and such
 
 ### compare
-2. look.. 
+2. look..  
       ..over a certain range..  
       ..with workbooks containing certain names..  
       ..with worksheets containing certain names..  
