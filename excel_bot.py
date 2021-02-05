@@ -83,16 +83,18 @@ class ExcelBot:
         except ValueError as v_err:
             ml.log_event(v_err)
 
-    def set_search_area(self, min_col, max_col, min_row, max_row):
+    def set_search_area(self, search_area):
         """
         set_search_area does the following..
         1. allows the user to set a custom search area for all spreadsheets, smaller is faster
-        :param min_col: far left
-        :param max_col: far right
-        :param min_row: top
-        :param max_row: bottom
+        :param search_area: a tuple containing..
+                                ..min_col: far left,
+                                ..max_col: far right,
+                                ..min_row: top,
+                                ..max_row: bottom
         :return:
         """
+        min_col, max_col, min_row, max_row = search_area
         ml.log_event('search area set..\n min_col: \'{}\'\n max_col: \'{}\'\n min_row: \'{}\'\n max_row: \'{}\''.format(
             min_col, max_col, min_row, max_row))
         self.min_col = min_col
