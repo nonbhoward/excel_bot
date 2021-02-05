@@ -12,9 +12,9 @@ def mainloop():
     the abstracted main operations of the program that are performed during program execution
     :return: None
     """
+    search_terms_to_find = get_search_terms_to_find()
     workbook_keywords_of_interest = get_workbook_keywords_of_interest()
     worksheet_keywords_of_interest = get_worksheet_keywords_of_interest()
-    search_terms_to_find = get_search_terms_to_find()
     xb = ExcelBot(workbook_keywords_of_interest, worksheet_keywords_of_interest)
     while True:
         xb.set_search_area(MIN_COLUMN, MAX_COLUMN, MIN_ROW, MAX_ROW)
