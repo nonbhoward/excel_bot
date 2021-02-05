@@ -5,9 +5,6 @@ from pathlib2 import Path
 ml = MinimalLog()
 MIN_COLUMN, MAX_COLUMN = 1, 100
 MIN_ROW, MAX_ROW = 1, 100
-workbook_keywords_of_interest = ['example']
-worksheet_keywords_of_interest = ['words', 'vehicles']
-search_terms_to_find = ['bacon', 'cheese', 'superbutt']
 
 
 def mainloop():
@@ -15,6 +12,9 @@ def mainloop():
     the abstracted main operations of the program that are performed during program execution
     :return: None
     """
+    workbook_keywords_of_interest = get_workbook_keywords_of_interest()
+    worksheet_keywords_of_interest = get_worksheet_keywords_of_interest()
+    search_terms_to_find = get_search_terms_to_find()
     xb = ExcelBot(workbook_keywords_of_interest, worksheet_keywords_of_interest)
     while True:
         xb.set_search_area(MIN_COLUMN, MAX_COLUMN, MIN_ROW, MAX_ROW)
@@ -76,6 +76,52 @@ def get_project_path() -> Path:
         return Path(getcwd())
     except OSError as o_err:
         ml.log_event(o_err)
+
+
+def get_search_terms_to_find() -> list:
+    """
+    # FIXME custom search terms
+    add your custom search terms here
+    :return:
+    """
+    search_terms = [
+        'first search term',
+        'second search term',
+        'third search term',
+        'bacon',
+        'cheese',
+        'super'
+    ]
+    return search_terms
+
+
+def get_workbook_keywords_of_interest() -> list:
+    """
+    # FIXME custom workbook koi
+    add your custom workbook keywords here
+    :return:
+    """
+    workbook_keywords_of_interest = [
+        'first workbook koi',
+        'second workbook koi',
+        'example'
+    ]
+    return workbook_keywords_of_interest
+
+
+def get_worksheet_keywords_of_interest() -> list:
+    """
+    # FIXME custom worksheet koi
+    add your custom worksheet keywords here
+    :return:
+    """
+    worksheet_keywords_of_interest = [
+        'first worksheet koi',
+        'second worksheet koi',
+        'words',
+        'vehicles'
+    ]
+    return worksheet_keywords_of_interest
 
 
 mainloop()
