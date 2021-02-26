@@ -14,13 +14,13 @@ class ExcelBot:
     def __init__(self, workbook_koi, worksheet_koi):
         """
         on initialization of this class.. it does the following..
-        1. create a bunch of empty dictionaries
-        2. set the koi, "keywords of interest", which guides the search
-        3. set the search range, which guides the search
+        1. create empty dictionaries
+        2. set the koi, "keywords of interest", to filter data of interest
+        3. set the search range, to filter ranges of interest
         4. set the data path, where excel worksheets to-be-read are stored
-        5. get all of the excel files in the data path and store those values into a dictionary for easy-access
-        6. read their contents, and store those values into a dictionary for easy-access
-        7. filter the contents based on user-input, sorting those values into a dictionary for easy access
+        5. get all excel files in the data path and load them into the class
+        6. read their contents, and store those values in a dict in the class object
+        7. filter the contents based on user parameters, sorting 'found results' into a dict        
         :param workbook_koi: keywords of interest that specify how workbooks will be processed
         :param worksheet_koi: keywords of interest that specify how worksheets will be processed
         """
